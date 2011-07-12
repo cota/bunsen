@@ -41,47 +41,33 @@ close $fh;
 
 @$data = sort { $a->{date} cmp $b->{date} } @$data;
 
-my %in;
-my %out;
-my @in_top = ();
-my @out_top = ();
+my %recs;
 foreach my $item (@$data) {
     my $year	= $item->{dateh}->{y};
     my $month	= $item->{dateh}->{m};
-    my $pile;
-    my $top;
-    if ($item->{amount} > 0) {
-	$pile = \%in;
-	$top = \@in_top;
-    } else {
-	$pile = \%out;
-	$top = \@out_top;
-    }
+    my $pile	= $item->{amount} > 0 ? 'in' : 'out';
+
     $item->{amount} = abs($item->{amount});
     my $amount = $item->{amount};
 
     if (!$limit or $amount < $limit) {
-	$pile->{$year}->{$month} += $amount;
-	if ($top_items) {
-	    if (@$top < $top_items) {
-		push @$top, $item;
-	    } else {
-		my $prev = pop @$top;
-		if ($amount > $prev->{amount}) {
-		    push @$top, $item;
-		} else {
-		    push @$top, $prev;
-		}
-	    }
-	    @$top = sort { $b->{amount} <=> $a->{amount} } @$top;
+	push @{$recs{$pile}->{$year}->{$month}}, $item;
+    }
+}
+
+foreach (keys %recs) {
+    my $year = $recs{$_};
+    foreach my $y (keys %$year) {
+	my $month = $year->{$y};
+	foreach my $m (keys %$month) {
+	    my $entries = $month->{$m};
+	    @$entries = sort { $b->{amount} <=> $a->{amount} } @$entries;
 	}
     }
 }
 
 use Data::Dumper;
-print 'Income: '. Dumper(\%in);
-print 'Expenses: '. Dumper(\%out);
-print 'Exp. Top: '. Dumper(\@out_top);
+print Dumper(\%recs);
 
 # Some samples from Chase:
 # DEBIT,07/05/2011,"ATM WITHDRAWAL",-100.0
