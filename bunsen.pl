@@ -44,7 +44,12 @@ my %out;
 foreach my $item (@$data) {
     my $year	= $item->{'dateh'}->{'y'};
     my $month	= $item->{'dateh'}->{'m'};
-    my $pile	= $item->{'amount'} > 0 ? \%in : \%out;
+    my $pile;
+    if ($item->{'amount'} > 0) {
+	$pile = \%in;
+    } else {
+	$pile = \%out;
+    }
     my $amount	= abs($item->{'amount'});
 
     if (!$limit or $amount < $limit) {
