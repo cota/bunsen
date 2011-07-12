@@ -39,26 +39,26 @@ my $data = parse_chase_csv($csv, $fh);
 $csv->eof or $csv->error_diag();
 close $fh;
 
-@$data = sort { $a->{'date'} cmp $b->{'date'} } @$data;
+@$data = sort { $a->{date} cmp $b->{date} } @$data;
 
 my %in;
 my %out;
 my @in_top = ();
 my @out_top = ();
 foreach my $item (@$data) {
-    my $year	= $item->{'dateh'}->{'y'};
-    my $month	= $item->{'dateh'}->{'m'};
+    my $year	= $item->{dateh}->{y};
+    my $month	= $item->{dateh}->{m};
     my $pile;
     my $top;
-    if ($item->{'amount'} > 0) {
+    if ($item->{amount} > 0) {
 	$pile = \%in;
 	$top = \@in_top;
     } else {
 	$pile = \%out;
 	$top = \@out_top;
     }
-    $item->{'amount'} = abs($item->{'amount'});
-    my $amount = $item->{'amount'};
+    $item->{amount} = abs($item->{amount});
+    my $amount = $item->{amount};
 
     if (!$limit or $amount < $limit) {
 	$pile->{$year}->{$month} += $amount;
@@ -67,13 +67,13 @@ foreach my $item (@$data) {
 		push @$top, $item;
 	    } else {
 		my $prev = pop @$top;
-		if ($amount > $prev->{'amount'}) {
+		if ($amount > $prev->{amount}) {
 		    push @$top, $item;
 		} else {
 		    push @$top, $prev;
 		}
 	    }
-	    @$top = sort { $b->{'amount'} <=> $a->{'amount'} } @$top;
+	    @$top = sort { $b->{amount} <=> $a->{amount} } @$top;
 	}
     }
 }
