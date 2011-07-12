@@ -10,11 +10,13 @@ my $help = 0;
 my $man = 0;
 my $stdio = 0;
 my $limit = 0;
+my $top_items = 0;
 
 GetOptions(
     'help|?|h' => \$help,
     'limit|l=s'  => \$limit,
     'man'      => \$man,
+    'top|t=s' => \$top_items,
     '' => \$stdio,
     ) or pod2usage(2);
 pod2usage(1) if $help;
@@ -41,25 +43,45 @@ close $fh;
 
 my %in;
 my %out;
+my @in_top = ();
+my @out_top = ();
 foreach my $item (@$data) {
     my $year	= $item->{'dateh'}->{'y'};
     my $month	= $item->{'dateh'}->{'m'};
     my $pile;
+    my $top;
     if ($item->{'amount'} > 0) {
 	$pile = \%in;
+	$top = \@in_top;
     } else {
 	$pile = \%out;
+	$top = \@out_top;
     }
-    my $amount	= abs($item->{'amount'});
+    $item->{'amount'} = abs($item->{'amount'});
+    my $amount = $item->{'amount'};
 
     if (!$limit or $amount < $limit) {
 	$pile->{$year}->{$month} += $amount;
+	if ($top_items) {
+	    if (@$top < $top_items) {
+		push @$top, $item;
+	    } else {
+		my $prev = pop @$top;
+		if ($amount > $prev->{'amount'}) {
+		    push @$top, $item;
+		} else {
+		    push @$top, $prev;
+		}
+	    }
+	    @$top = sort { $b->{'amount'} <=> $a->{'amount'} } @$top;
+	}
     }
 }
 
 use Data::Dumper;
 print 'Income: '. Dumper(\%in);
 print 'Expenses: '. Dumper(\%out);
+print 'Exp. Top: '. Dumper(\@out_top);
 
 # Some samples from Chase:
 # DEBIT,07/05/2011,"ATM WITHDRAWAL",-100.0
