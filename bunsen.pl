@@ -94,11 +94,27 @@ sub print_month
     my ($entries, $m) = @_;
 
     my $total = 0;
-    foreach (@$entries) {
-	$total += $_->{amount};
+    my @top;
+    foreach my $item (@$entries) {
+	$total += $item->{amount};
+	if ($top_items) {
+	    if (@top < $top_items) {
+		push @top, $item;
+	    } else {
+		if ($item->{amount} > $top[-1]->{amount}) {
+		    $top[-1] = $item;
+		    @top = sort { $b->{amount} <=> $a->{amount} } @top;
+		}
+	    }
+	}
     }
 
     print "  $m: $total\n";
+    if (@top) {
+	foreach (@top) {
+	    print "\t$_->{amount}\t$_->{date}\t$_->{desc}\n";
+	}
+    }
 }
 
 # Some samples from Chase:
