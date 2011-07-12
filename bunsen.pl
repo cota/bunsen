@@ -41,6 +41,11 @@ close $fh;
 
 @$data = sort { $a->{date} cmp $b->{date} } @$data;
 
+my %pilenames = (
+    in	=> 'Income',
+    out	=> 'Expenses'
+    );
+
 my %recs;
 foreach my $item (@$data) {
     my $year	= $item->{dateh}->{y};
@@ -66,8 +71,35 @@ foreach (keys %recs) {
     }
 }
 
-use Data::Dumper;
-print Dumper(\%recs);
+foreach (sort keys %recs) {
+    print "$pilenames{$_}\n";
+    my $year = $recs{$_};
+    foreach my $y (sort keys %$year) {
+	print_year($year->{$y}, $y);
+    }
+}
+
+sub print_year
+{
+    my ($months, $y) = @_;
+
+    print " $y\n";
+    foreach my $m (sort keys %$months) {
+	print_month($months->{$m}, $m);
+    }
+}
+
+sub print_month
+{
+    my ($entries, $m) = @_;
+
+    my $total = 0;
+    foreach (@$entries) {
+	$total += $_->{amount};
+    }
+
+    print "  $m: $total\n";
+}
 
 # Some samples from Chase:
 # DEBIT,07/05/2011,"ATM WITHDRAWAL",-100.0
