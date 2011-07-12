@@ -9,12 +9,16 @@ use Pod::Usage;
 my $help = 0;
 my $man = 0;
 my $stdio = 0;
-my $limit = 0;
+my %limit = (
+    in  => 0,
+    out => 0
+    );
 my $top_items = 0;
 
 GetOptions(
     'help|?|h' => \$help,
-    'limit|l=s'  => \$limit,
+    'limit-in=s'	=> \$limit{in},
+    'limit-out=s'	=> \$limit{out},
     'man'      => \$man,
     'top|t=s' => \$top_items,
     '' => \$stdio,
@@ -53,15 +57,15 @@ foreach my $item (@$data) {
     my $month	= $item->{dateh}->{m};
     my $pile	= $item->{amount} > 0 ? 'in' : 'out';
 
-    my $amount = $item->{amount};
+    my $amount = abs($item->{amount});
 
-    if (!$limit or $amount < $limit) {
+    if (!$limit{$pile} or $amount < $limit{$pile}) {
 	$net{total}			+= $item->{amount};
 	$net{y}->{$year}->{total}	+= $item->{amount};
 	$net{y}->{$year}->{m}->{$month}	+= $item->{amount};
 	push @{$recs{$pile}->{$year}->{$month}}, $item;
     }
-    $item->{amount} = abs($item->{amount});
+    $item->{amount} = $amount;
 }
 
 foreach (keys %recs) {
@@ -173,9 +177,13 @@ bunsen - Prints a report on the expenses/income reported by the input file.
 
 Prints a brief help message and exits.
 
-=item B<--limit -l>
+=item B<--limit-in>
 
-Ignores amounts over the specified limit.
+Ignore income transactions over the specified limit.
+
+=item B<--limit-out>
+
+Ignore expenditures over the specified limit.
 
 =item B<--man>
 
