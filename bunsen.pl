@@ -47,17 +47,21 @@ my %pilenames = (
     );
 
 my %recs;
+my %net;
 foreach my $item (@$data) {
     my $year	= $item->{dateh}->{y};
     my $month	= $item->{dateh}->{m};
     my $pile	= $item->{amount} > 0 ? 'in' : 'out';
 
-    $item->{amount} = abs($item->{amount});
     my $amount = $item->{amount};
 
     if (!$limit or $amount < $limit) {
+	$net{total}			+= $item->{amount};
+	$net{y}->{$year}->{total}	+= $item->{amount};
+	$net{y}->{$year}->{m}->{$month}	+= $item->{amount};
 	push @{$recs{$pile}->{$year}->{$month}}, $item;
     }
+    $item->{amount} = abs($item->{amount});
 }
 
 foreach (keys %recs) {
@@ -76,6 +80,14 @@ foreach (sort keys %recs) {
     my $year = $recs{$_};
     foreach my $y (sort keys %$year) {
 	print_year($year->{$y}, $y);
+    }
+}
+
+print "Net: $net{total}\n";
+foreach my $y (sort keys $net{y}) {
+    print " $y: $net{y}->{$y}->{total}\n";
+    foreach my $m (sort keys $net{y}->{$y}->{m}) {
+	print "  $m: $net{y}->{$y}->{m}->{$m}\n";
     }
 }
 
