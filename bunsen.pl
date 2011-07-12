@@ -169,6 +169,11 @@ Ignores amounts over the specified limit.
 
 Prints the manual page and exits.
 
+=item B<--top -t>
+
+Controls the number of records to be printed for each month, ordered
+in descending order by amount.
+
 =back
 
 =head1 AUTHOR
